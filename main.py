@@ -52,6 +52,24 @@ def capturar_foto_perfil(username):
         html = page.content()
         browser.close()
 
+    match = re.search(r'og:image" content="([^"]+)"', html)
+    if not match:
+        return None
+
+    og_image = match.group(1).replace('&amp;', '&')
+    params = parse_qs(urlparse(og_image).query)
+    oe = params.get('oe', [None])[0]
+
+    if not oe:
+        return None
+
+    for url in requisicoes:
+        if f'oe={oe}' in url:
+            return url
+
+    return og_image
+
+
 @app.get("/")
 def root():
     return {"status": "ok", "uso": "/foto?usernames=conta1,conta2"}
@@ -77,6 +95,12 @@ def debug(username: str):
         context = browser.new_context(
             user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
         )
+        context.add_cookies([{
+            "name": "sessionid",
+            "value": os.environ['IG_SESSION'],
+            "domain": ".instagram.com",
+            "path": "/"
+        }])
         page = context.new_page()
         page.goto(f"https://www.instagram.com/{username}/", wait_until='networkidle')
         page.wait_for_timeout(3000)
@@ -96,34 +120,3 @@ def check_ip():
         }
     )
     return {"ip": r.text}
-
-
-@app.get("/login")
-def fazer_login(username: str, password: str):
-    with sync_playwright() as p:
-        browser = p.chromium.launch(
-            headless=True,
-            proxy=PROXY,
-            args=['--no-sandbox', '--single-process', '--no-zygote', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
-        )
-        context = browser.new_context(
-            user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-        )
-        page = context.new_page()
-        page.goto("https://www.instagram.com/accounts/login/")
-        page.wait_for_timeout(3000)
-        page.fill('input[name="username"]', username)
-        page.fill('input[name="password"]', password)
-        page.click('button[type="submit"]')
-        page.wait_for_timeout(8000)
-
-        cookies = context.cookies()
-        
-        with open("/app/cookies.json", "w") as f:
-            json.dump(cookies, f)
-
-        html = page.content()
-        browser.close()
-
-    return {"cookies_salvos": len(cookies), "html_trecho": html[:500]}
-
