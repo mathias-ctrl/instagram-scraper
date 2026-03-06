@@ -65,6 +65,3 @@ def get_foto(usernames: str):
     return resultado
 ```
 
-No Easypanel cria um novo serviço do tipo **App**, aponta pro repositório com esses dois arquivos (ou usa o editor de Dockerfile direto), expõe a porta `8000` e sobe. Aí chama assim:
-```
-GET https://seu-servico.easypanel.host/foto?usernames=conta1,conta2
