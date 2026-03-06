@@ -15,6 +15,8 @@ RUN pip install playwright
 RUN playwright install chromium
 RUN playwright install-deps chromium
 
+RUN pip install fastapi uvicorn requests
+
 # Instala dependências do script
 RUN pip install fastapi uvicorn
 
