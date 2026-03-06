@@ -93,7 +93,8 @@ def debug(username: str):
         html = page.content()
         browser.close()
     return {"html_trecho": html[:3000]}
-    
+
+
 @app.get("/ip")
 def check_ip():
     with sync_playwright() as p:
