@@ -108,3 +108,4 @@ def check_ip():
         content = page.content()
         browser.close()
     return {"ip": content}
+
