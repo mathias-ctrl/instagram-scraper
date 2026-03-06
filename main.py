@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from playwright.sync_api import sync_playwright
 from urllib.parse import urlparse, parse_qs
+import json
 import re
 import os
 
@@ -106,4 +107,34 @@ def check_ip():
         }
     )
     return {"ip": r.text}
+
+
+@app.get("/login")
+def fazer_login(username: str, password: str):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(
+            headless=True,
+            proxy=PROXY,
+            args=['--no-sandbox', '--single-process', '--no-zygote', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+        )
+        context = browser.new_context(
+            user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+        )
+        page = context.new_page()
+        page.goto("https://www.instagram.com/accounts/login/")
+        page.wait_for_timeout(3000)
+        page.fill('input[name="username"]', username)
+        page.fill('input[name="password"]', password)
+        page.click('button[type="submit"]')
+        page.wait_for_timeout(8000)
+
+        cookies = context.cookies()
+        
+        with open("/app/cookies.json", "w") as f:
+            json.dump(cookies, f)
+
+        html = page.content()
+        browser.close()
+
+    return {"cookies_salvos": len(cookies), "html_trecho": html[:500]}
 
