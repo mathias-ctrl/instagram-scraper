@@ -15,6 +15,7 @@ PROXY = {
 
 def capturar_foto_perfil(username):
     requisicoes = []
+
     with sync_playwright() as p:
         browser = p.chromium.launch(
             headless=True,
@@ -31,6 +32,12 @@ def capturar_foto_perfil(username):
         context = browser.new_context(
             user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
         )
+        context.add_cookies([{
+            "name": "sessionid",
+            "value": os.environ['IG_SESSION'],
+            "domain": ".instagram.com",
+            "path": "/"
+        }])
         page = context.new_page()
 
         def interceptar(route):
@@ -44,24 +51,6 @@ def capturar_foto_perfil(username):
         page.wait_for_timeout(3000)
         html = page.content()
         browser.close()
-
-    match = re.search(r'og:image" content="([^"]+)"', html)
-    if not match:
-        return None
-
-    og_image = match.group(1).replace('&amp;', '&')
-    params = parse_qs(urlparse(og_image).query)
-    oe = params.get('oe', [None])[0]
-
-    if not oe:
-        return None
-
-    for url in requisicoes:
-        if f'oe={oe}' in url:
-            return url
-
-    return og_image
-
 
 @app.get("/")
 def root():
