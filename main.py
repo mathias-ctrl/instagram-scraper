@@ -97,15 +97,13 @@ def debug(username: str):
 
 @app.get("/ip")
 def check_ip():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(
-            headless=True,
-            proxy=PROXY,
-            args=['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
-        )
-        page = browser.new_page()
-        page.goto("https://api.ipify.org?format=json")
-        content = page.content()
-        browser.close()
-    return {"ip": content}
+    import requests
+    r = requests.get(
+        "https://ipv4.webshare.io/",
+        proxies={
+            "http": f"http://{os.environ['PROXY_USER']}:{os.environ['PROXY_PASS']}@{os.environ['PROXY_HOST']}:{os.environ['PROXY_PORT']}/",
+            "https": f"http://{os.environ['PROXY_USER']}:{os.environ['PROXY_PASS']}@{os.environ['PROXY_HOST']}:{os.environ['PROXY_PORT']}/"
+        }
+    )
+    return {"ip": r.text}
 
