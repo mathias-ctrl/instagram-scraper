@@ -63,5 +63,4 @@ def get_foto(usernames: str):
     for username in lista:
         resultado[username] = capturar_foto_perfil(username)
     return resultado
-```
 
