@@ -20,7 +20,10 @@ def capturar_foto_perfil(username):
                 '--disable-gpu',
             ]
         )
-        page = browser.new_page()
+        context = browser.new_context(
+            user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+        )
+        page = context.new_page()
 
         def interceptar(route):
             url = route.request.url
@@ -52,15 +55,14 @@ def capturar_foto_perfil(username):
 
     return og_image
 
+@app.get("/")
+def root():
+    return {"status": "ok", "uso": "/foto?usernames=conta1,conta2"}
 
 @app.get("/foto")
 def get_foto(usernames: str):
-    """
-    ?usernames=conta1,conta2,conta3
-    """
     lista = [u.strip().replace('@', '') for u in usernames.split(',') if u.strip()]
     resultado = {}
     for username in lista:
         resultado[username] = capturar_foto_perfil(username)
     return resultado
-
