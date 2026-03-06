@@ -2,14 +2,22 @@ from fastapi import FastAPI
 from playwright.sync_api import sync_playwright
 from urllib.parse import urlparse, parse_qs
 import re
+import os
 
 app = FastAPI()
+
+PROXY = {
+    "server": f"http://{os.environ['PROXY_HOST']}:{os.environ['PROXY_PORT']}",
+    "username": os.environ['PROXY_USER'],
+    "password": os.environ['PROXY_PASS']
+}
 
 def capturar_foto_perfil(username):
     requisicoes = []
     with sync_playwright() as p:
         browser = p.chromium.launch(
             headless=True,
+            proxy=PROXY,
             args=[
                 '--no-sandbox',
                 '--single-process',
@@ -73,6 +81,7 @@ def debug(username: str):
     with sync_playwright() as p:
         browser = p.chromium.launch(
             headless=True,
+            proxy=PROXY,
             args=['--no-sandbox', '--single-process', '--no-zygote', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
         )
         context = browser.new_context(
