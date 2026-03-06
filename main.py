@@ -7,7 +7,6 @@ app = FastAPI()
 
 def capturar_foto_perfil(username):
     requisicoes = []
-
     with sync_playwright() as p:
         browser = p.chromium.launch(
             headless=True,
@@ -34,7 +33,6 @@ def capturar_foto_perfil(username):
         page.route("**/*", interceptar)
         page.goto(f"https://www.instagram.com/{username}/", wait_until='networkidle')
         page.wait_for_timeout(3000)
-
         html = page.content()
         browser.close()
 
@@ -55,9 +53,11 @@ def capturar_foto_perfil(username):
 
     return og_image
 
+
 @app.get("/")
 def root():
     return {"status": "ok", "uso": "/foto?usernames=conta1,conta2"}
+
 
 @app.get("/foto")
 def get_foto(usernames: str):
@@ -66,3 +66,21 @@ def get_foto(usernames: str):
     for username in lista:
         resultado[username] = capturar_foto_perfil(username)
     return resultado
+
+
+@app.get("/debug")
+def debug(username: str):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(
+            headless=True,
+            args=['--no-sandbox', '--single-process', '--no-zygote', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+        )
+        context = browser.new_context(
+            user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+        )
+        page = context.new_page()
+        page.goto(f"https://www.instagram.com/{username}/", wait_until='networkidle')
+        page.wait_for_timeout(3000)
+        html = page.content()
+        browser.close()
+    return {"html_trecho": html[:3000]}
