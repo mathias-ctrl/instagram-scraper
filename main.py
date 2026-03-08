@@ -8,7 +8,7 @@ import os
 app = FastAPI()
 
 PROXY = {
-    "server": f"http://{os.environ['PROXY_HOST']}:{os.environ['PROXY_PORT']}",
+    "server": f"http://{os.environ['PROXY_HOST']}:80",
     "username": os.environ['PROXY_USER'],
     "password": os.environ['PROXY_PASS']
 }
