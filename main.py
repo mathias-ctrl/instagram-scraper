@@ -8,7 +8,7 @@ import os
 app = FastAPI()
 
 PROXY = {
-    "server": f"http://{os.environ['PROXY_HOST']}:80",
+    "server": "socks5://p.webshare.io:80",
     "username": os.environ['PROXY_USER'],
     "password": os.environ['PROXY_PASS']
 }
